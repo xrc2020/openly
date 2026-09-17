@@ -19,6 +19,11 @@ export async function GET(request: Request) {
     const supabase = await createServerSupabaseClient(true)
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (error || !data.user) return fail('oauth')
+    if (next === '/reset-password') {
+      const response = NextResponse.redirect(new URL(next, requestUrl.origin))
+      response.headers.set('Cache-Control', 'private, no-store')
+      return response
+    }
     const profile = await supabase.from('profiles').select('onboarding_completed_at').eq('id', data.user.id).single()
     if (profile.error) return fail('profile')
     const destination = profile.data.onboarding_completed_at ? next : `/onboarding?next=${encodeURIComponent(next)}`

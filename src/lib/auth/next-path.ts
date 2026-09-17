@@ -6,7 +6,7 @@ export function safeNextPath(value: string | null | undefined): string {
     const url = new URL(value, 'https://openly.invalid')
     if (url.origin !== 'https://openly.invalid') return '/'
     if (url.pathname === '/admin' || url.pathname === '/admin/venues') return '/admin/venues'
-    if (['/plus', '/support', '/admin/games', '/admin/support', '/admin/settings', '/admin/payments', '/admin/transactions'].includes(url.pathname)) return url.pathname
+    if (['/plus', '/support', '/reset-password', '/admin/games', '/admin/support', '/admin/settings', '/admin/payments', '/admin/transactions'].includes(url.pathname)) return url.pathname
     if (/^\/open-play\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(url.pathname)) return url.pathname
     if (url.pathname === '/host') {
       const draft = url.searchParams.get('draft')
