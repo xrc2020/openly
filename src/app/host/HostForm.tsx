@@ -21,7 +21,7 @@ const providerLabels: Record<string, string> = { gcash: 'GCash', maya: 'Maya', b
 export default function HostForm({ venues, methods, draft }: { venues: VenueOption[]; methods: PaymentOption[]; draft: DraftGame | null }) {
   const [values, setValues] = useState({
     title: draft?.title ?? '', description: draft?.description ?? '', venue_id: draft?.venue_id ?? '',
-    venue_name: '', address: '', city: '', google_maps_url: '', court_name: draft?.court_name ?? '',
+    venue_name: '', address: '', city: '', google_maps_url: '', court_name: draft?.court_name ?? '', court_count: String(draft?.court_count ?? 1), play_style: 'manual',
     starts_at: localTime(draft?.starts_at), ends_at: localTime(draft?.ends_at),
     max_players: String(draft?.max_players ?? 16), fee: String(draft?.fee ?? 0),
     skill_level: draft?.skill_level ?? 'any', cancellation_cutoff: localTime(draft?.cancellation_cutoff),
@@ -55,7 +55,7 @@ export default function HostForm({ venues, methods, draft }: { venues: VenueOpti
       if (publish && paid && !values.payment_method_id && (!values.account_name.trim() || !values.account_number.trim())) throw Error('Add payment details before publishing a paid game.')
       const details = { ...values, title: values.title.trim(), starts_at: starts, ends_at: ends,
         cancellation_cutoff: values.cancellation_cutoff ? toISO(values.cancellation_cutoff) : null,
-        max_players: Number(values.max_players), fee: paid ? Number(values.fee) : 0,
+        court_count: Number(values.court_count), max_players: Number(values.max_players), fee: paid ? Number(values.fee) : 0,
         google_maps_url: mapsLink(values.google_maps_url),
         payment_method_id: paid ? values.payment_method_id : '',
         provider: paid ? values.provider : null,
@@ -101,8 +101,6 @@ export default function HostForm({ venues, methods, draft }: { venues: VenueOpti
 
   return <>
     <div className={styles.intro}><span className={styles.kicker}>BRING YOUR COURT CREW TOGETHER</span><h1>{draft ? 'Finish your Open Play.' : 'Good games start with you.'}</h1><p>Set the place, pick a time, and make room for your people.</p></div>
-    <HostingPlan version={planVersion} onBlocked={setHostingBlocked}/>
-    <details className={styles.playStyle}><summary>Play style · Manual / Social / Competitive</summary>{draft?<RotationPanel eventId={draft.id}/>:<p>Manual Play is free. Save this game as a draft first to configure Social or Competitive Smart Rotation. You can also configure rotation from your published game’s Rotation tab.</p>}</details>
     <form ref={form} onSubmit={submit} className={styles.layout}>
       <fieldset disabled={busy || uncertain || qrBusy} className={styles.fields}>
         <section className={styles.panel}><h2><span>01</span> The game</h2>
@@ -120,12 +118,14 @@ export default function HostForm({ venues, methods, draft }: { venues: VenueOpti
             <p className={styles.hint}>In Google Maps, open the venue → Share → Copy link. Your location can be used for this game right away; only admins can approve it for the official dropdown.</p>
             {mapsLink(values.google_maps_url) && <a href={mapsLink(values.google_maps_url)!} target="_blank" rel="noopener noreferrer">Check location in Google Maps ↗</a>}
           </>}
+          <label htmlFor="court-count">How many courts have you rented?</label><input id="court-count" type="number" min={1} max={20} step={1} required value={values.court_count} onChange={e=>set('court_count',e.target.value)}/><p className={styles.hint}>Automatic Rotation will show one independent section per court.</p>
           <label htmlFor="court">Court name or number <small>Optional</small></label><input id="court" maxLength={120} value={values.court_name} onChange={e => set('court_name', e.target.value)} placeholder="e.g. Courts 1 and 2" />
           <p className={styles.hint}>Arrange your court booking with the venue. Publishing here does not reserve the physical court.</p>
         </section>
         <section className={styles.panel}><h2><span>03</span> The time</h2><p className={styles.note}>All times are Philippine time · UTC+8.</p>
           <div className={styles.row}><div><label htmlFor="start">Starts</label><input id="start" type="datetime-local" required value={values.starts_at} onChange={e => set('starts_at', e.target.value)} /></div><div><label htmlFor="end">Ends</label><input id="end" type="datetime-local" required value={values.ends_at} onChange={e => set('ends_at', e.target.value)} /></div></div>
         </section>
+        {!draft&&<section className={styles.panel}><h2>How would you like to run play?</h2><p>Hosting is free. Your first three published Open Plays include Social and Competitive rotation at no charge.</p><label htmlFor="play-style">Play style</label><select id="play-style" value={values.play_style} onChange={e=>set('play_style',e.target.value)}><option value="manual">Manual — organize games yourself</option><option value="social">Social — automatic fair rotation</option><option value="competitive">Competitive — rotation, scores and rankings</option></select><p className={styles.hint}>After your trial, Social and Competitive need Plus or a session unlock. You can always publish with Manual and unlock rotation later.</p></section>}
         <section className={styles.panel}><h2><span>04</span> Entry & payment</h2>
           <div className={styles.choices}><button type="button" aria-pressed={!paid} onClick={() => setPaid(false)}>Free<span>No entry fee</span></button><button type="button" aria-pressed={paid} onClick={() => setPaid(true)}>Paid<span>Per player · PHP</span></button></div>
           {paid && <><label htmlFor="fee">Fee per player (₱)</label><input id="fee" type="number" min="0.01" max="100000" step="0.01" required value={values.fee} onChange={e => set('fee', e.target.value)} />
@@ -151,5 +151,7 @@ export default function HostForm({ venues, methods, draft }: { venues: VenueOpti
         <Link className={styles.back} href="/?tab=hosted">Back to Hosted by Me</Link>
       </section></aside>
     </form>
+    <HostingPlan version={planVersion} onBlocked={setHostingBlocked}/>
+    {draft&&<details className={styles.playStyle}><summary>Configure this draft’s rotation</summary><RotationPanel eventId={draft.id}/></details>}
   </>
 }

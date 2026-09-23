@@ -1,7 +1,7 @@
 export type RotationPlayer={id:string;user_id:string;display_name:string}
 export type Assignment={player_id:string;court:number;team:number;display_name?:string;user_id?:string}
 export type RotationSettings={style:'manual'|'social'|'competitive';courts:number;round_type:'timed'|'score';minutes:number;target:number;win_by:number;score_cap:number|null;version:number}
-export type RotationRound={id:string;number:number;status:'draft'|'live'|'completed'|'aborted';kind:'regular'|'semifinal'|'final';version:number;settings:RotationSettings;started_at:string|null;completed_at:string|null;assignments:Assignment[];matches:{court:number;a:number|null;b:number|null}[]}
+export type RotationRound={court_number?:number|null;id:string;number:number;status:'draft'|'live'|'completed'|'aborted';kind:'regular'|'semifinal'|'final';version:number;settings:RotationSettings;started_at:string|null;completed_at:string|null;assignments:Assignment[];matches:{court:number;a:number|null;b:number|null}[]}
 export type PlayerStats={id:string;name:string;games:number;rests:number;wins:number;losses:number;draws:number;pf:number;pa:number;minutes:number;partners:Set<string>;opponents:Set<string>;courts:Record<number,number>}
 const pair=(a:string,b:string)=>[a,b].sort().join('|')
 export function calculatePlayerHistory(players:RotationPlayer[],rounds:RotationRound[]){
@@ -29,7 +29,8 @@ export function generateNextRound(players:RotationPlayer[],rounds:RotationRound[
  if(players.length<4)throw Error('At least four confirmed players are needed.')
  const history=calculatePlayerHistory(players,rounds),rand=random(seed),last=rounds.filter(r=>r.status==='completed'&&r.kind==='regular').at(-1)
  const rested=new Set(last?.assignments.filter(a=>!a.court).map(a=>a.player_id)??[])
- const priority=players.map(p=>({p,tie:rand()})).sort((a,b)=>history.stats.get(a.p.id)!.games-history.stats.get(b.p.id)!.games||Number(rested.has(b.p.id))-Number(rested.has(a.p.id))||a.tie-b.tie)
+ const lastPlayed=(id:string)=>Math.max(0,...rounds.filter(r=>r.status==='completed'&&r.assignments.some(a=>a.player_id===id&&a.court>0)).map(r=>Date.parse(r.completed_at??'')||0))
+ const priority=players.map(p=>({p,tie:rand()})).sort((a,b)=>history.stats.get(a.p.id)!.games-history.stats.get(b.p.id)!.games||Number(rested.has(b.p.id))-Number(rested.has(a.p.id))||lastPlayed(a.p.id)-lastPlayed(b.p.id)||a.tie-b.tie)
  const count=Math.min(courts,Math.floor(players.length/4))*4,chosen=priority.slice(0,count).map(x=>x.p),rest=priority.slice(count).map(x=>({player_id:x.p.id,court:0,team:0}))
  let best:Assignment[]=[],bestCost=Infinity
  // Evaluate several pairings; history has priority, and ties spread courts.
@@ -55,4 +56,12 @@ export function finalLayout(players:RotationPlayer[],semi:RotationRound):Assignm
  if(teams.length!==2||teams.some(t=>t.length!==2)||teams.flat().some(a=>!players.some(p=>p.id===a.player_id)))throw Error('Both winning teams must still be confirmed.')
  const layout=teams.flatMap((t,i)=>t.map(a=>({player_id:a.player_id,court:1,team:i+1})))
  return [...layout,...players.filter(p=>!layout.some(a=>a.player_id===p.id)).map(p=>({player_id:p.id,court:0,team:0}))]
+}
+
+/** Drafts reserve players too, so review/start cannot double-book another court. */
+export function generateCourtRound(players:RotationPlayer[],rounds:RotationRound[],court:number,seed=1):Assignment[]{
+ const occupied=new Set(rounds.filter(r=>r.status==='live'||r.status==='draft').flatMap(r=>r.assignments.filter(a=>a.court>0).map(a=>a.player_id)))
+ const available=players.filter(p=>!occupied.has(p.id))
+ if(available.length<4)throw Error('At least four available players are needed. Complete another court’s round first.')
+ return generateNextRound(available,rounds,1,seed).filter(a=>a.court>0).map(a=>({...a,court}))
 }

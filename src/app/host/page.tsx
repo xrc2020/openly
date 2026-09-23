@@ -17,7 +17,7 @@ export default async function HostPage({ searchParams }: { searchParams: Promise
   const [venues, methods, game] = await Promise.all([
     supabase.from('venues').select('id,name,address,city,google_maps_url,is_official,is_active').eq('is_official', true).eq('is_active', true).order('name').limit(500),
     supabase.from('payment_methods').select('id,provider,account_name,account_number,qr_path').eq('owner_id', user.id).eq('is_active', true).order('created_at', { ascending: false }),
-    draft ? supabase.from('open_plays').select('id,title,description,venue_id,court_name,starts_at,ends_at,max_players,fee,skill_level,cancellation_cutoff,cancellation_policy,draft_payment_method_id').eq('id', draft).eq('host_id', user.id).eq('status', 'draft').maybeSingle() : Promise.resolve({ data: null, error: null }),
+    draft ? supabase.from('open_plays').select('id,court_count,title,description,venue_id,court_name,starts_at,ends_at,max_players,fee,skill_level,cancellation_cutoff,cancellation_policy,draft_payment_method_id').eq('id', draft).eq('host_id', user.id).eq('status', 'draft').maybeSingle() : Promise.resolve({ data: null, error: null }),
   ])
   let message = profile.error || venues.error || methods.error || game.error ? 'We could not load the hosting form. Please refresh and try again.' : ''
   if (draft && !game.data && !message) message = 'This draft is not available. It may already be published, or belong to another host.'

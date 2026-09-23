@@ -3,3 +3,5 @@
 .dialog{margin:auto}.helpSteps{list-style:decimal}
 
 .endSession{border:1px solid #365156;border-radius:16px;padding:18px;margin:18px 0;background:#0c2228}.endSession p{color:#a9c0bf;line-height:1.6}
+
+.court>button{margin:8px 6px 0 0}.court>p{overflow-wrap:anywhere}
