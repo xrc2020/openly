@@ -1,7 +1,7 @@
 export type RotationPlayer={id:string;user_id:string;display_name:string}
 export type Assignment={player_id:string;court:number;team:number;display_name?:string;user_id?:string}
 export type RotationSettings={style:'manual'|'social'|'competitive';courts:number;round_type:'timed'|'score';minutes:number;target:number;win_by:number;score_cap:number|null;version:number}
-export type RotationRound={court_number?:number|null;id:string;number:number;status:'draft'|'live'|'completed'|'aborted';kind:'regular'|'semifinal'|'final';version:number;settings:RotationSettings;started_at:string|null;completed_at:string|null;assignments:Assignment[];matches:{court:number;a:number|null;b:number|null}[]}
+export type RotationRound={court_number?:number|null;id:string;number:number;status:'draft'|'live'|'completed'|'aborted';kind:'regular'|'semifinal'|'final';version:number;settings:RotationSettings;started_at:string|null;completed_at:string|null;assignments:Assignment[];matches:{court:number;a:number|null;b:number|null;timeout_a?:number|null;timeout_b?:number|null}[]}
 export type PlayerStats={id:string;name:string;games:number;rests:number;wins:number;losses:number;draws:number;pf:number;pa:number;minutes:number;partners:Set<string>;opponents:Set<string>;courts:Record<number,number>}
 const pair=(a:string,b:string)=>[a,b].sort().join('|')
 export function calculatePlayerHistory(players:RotationPlayer[],rounds:RotationRound[]){
@@ -59,9 +59,18 @@ export function finalLayout(players:RotationPlayer[],semi:RotationRound):Assignm
 }
 
 /** Drafts reserve players too, so review/start cannot double-book another court. */
-export function generateCourtRound(players:RotationPlayer[],rounds:RotationRound[],court:number,seed=1):Assignment[]{
+export function generateCourtRound(players:RotationPlayer[],rounds:RotationRound[],court:number,seed=1,style:RotationSettings['style']='social'):Assignment[]{
  const occupied=new Set(rounds.filter(r=>r.status==='live'||r.status==='draft').flatMap(r=>r.assignments.filter(a=>a.court>0).map(a=>a.player_id)))
  const available=players.filter(p=>!occupied.has(p.id))
  if(available.length<4)throw Error('At least four available players are needed. Complete another court’s round first.')
- return generateNextRound(available,rounds,1,seed).filter(a=>a.court>0).map(a=>({...a,court}))
+ const selected=generateNextRound(available,rounds,1,seed).filter(a=>a.court>0).map(a=>({...a,court}))
+ if(style!=='competitive')return selected
+ // Fair playing time determines eligibility first. Results balance the two teams.
+ const {stats,partners}=calculatePlayerHistory(players,rounds)
+ const strength=(id:string)=>{const p=stats.get(id)!;return (p.wins+1)/(p.games+2)*10+(p.pf-p.pa)/Math.max(1,p.games)}
+ const ranked=[...selected].sort((a,b)=>strength(b.player_id)-strength(a.player_id))
+ const options=[[[0,1],[2,3]],[[0,2],[1,3]],[[0,3],[1,2]]]
+ const cost=(teams:number[][])=>Math.abs(teams[0].reduce((n,i)=>n+strength(ranked[i].player_id),0)-teams[1].reduce((n,i)=>n+strength(ranked[i].player_id),0)) + teams.reduce((n,t)=>n+(partners.get(pair(ranked[t[0]].player_id,ranked[t[1]].player_id))??0)*0.05,0)
+ options.sort((a,b)=>cost(a)-cost(b))
+ return options[0].flatMap((team,i)=>team.map(j=>({...ranked[j],team:i+1})))
 }
