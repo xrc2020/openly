@@ -1,20 +1,30 @@
-Openly Rotation Reference Style Update
+Openly Secret Feature
 
-Apply this patch after the previous Openly-Rotation-Dashboard-Update (including migrations 018 and 019).
-This patch changes only the Rotation UI. No new SQL is required.
+Copy the src and public folders into F:\WebProj\openly, replacing matching files.
+The patch is based on your supplied Openly project and previous updates.
+It uses your existing public/logo.png.
 
-1. Copy the src folder into your Openly project, replacing the two matching files.
-2. Run npm run build.
-3. Publish using your normal Git/Vercel flow:
-   git add src/app/components/RotationPanel.tsx src/app/components/rotation.module.css
-   git commit -m "Match rotation dashboard to reference design"
-   git push
+After deploying, open https://playopenly.com/#Secretfeature
+The hash is case-sensitive. No navigation link has been added.
 
-Includes compact session controls, horizontal resting player cards, responsive court panels,
-team score +/- controls, court diagrams, timers, and independent End Round actions.
-Existing backend rotation, entitlement, and result behavior is retained.
-No shuffle/add-player controls, invented ratings, or serve counters are included.
+Publish from PowerShell in your project folder:
+npm run build
+git add src/app/page.tsx src/app/components/SecretFeatureGate.tsx public/secret-feature/index.html
+git commit -m "Add unlisted Openly secret feature"
+git push
 
-Validation: TypeScript, component ESLint, production build, and mocked desktop/mobile browser
-checks covering three courts without duplicate players, per-court completion, timeout/overtime,
-and non-host restrictions. Screenshots use sample players and are not live website data.
+No SQL or dependency installation required.
+
+The attached standalone prototype is preserved, including sample players,
+controls, styles, and behavior. Only its logo has been replaced. Markdown
+escaping was removed to restore valid HTML; a noindex meta tag and an isolated
+frame entry point were added for website integration.
+
+This is unlisted, not access-controlled: anyone with the link can use or share it.
+The standalone HTML asset can also be accessed directly. It does not read or
+write Openly games or accounts. Data resets on refresh; there is no database
+persistence or sharing between devices. It retains the prototype's Tailwind CDN
+and Google Fonts dependencies and its original mobile layout limitations.
+
+Checked: TypeScript, component lint, production build, exact hash entry and exit,
+logo loading, generating/ending rounds, and adding players in browser.

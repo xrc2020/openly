@@ -1,5 +1,6 @@
 'use client'
 
+import SecretFeatureGate from './components/SecretFeatureGate'
 import ShareOpenPlay from "@/app/components/ShareOpenPlay"
 import GameRoom from "@/app/components/GameRoom"
 import MyGames from "@/app/components/MyGames"
@@ -56,7 +57,11 @@ function formatDate(value: string) { return new Intl.DateTimeFormat('en-PH', { t
 function money(value: number | string) { return Number(value) === 0 ? 'Free' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: Number(value) % 1 ? 2 : 0 }).format(Number(value)) }
 function errorMessage(error: unknown) { return typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : 'Please check your connection and try again.' }
 
-export default function DiscoverPage() {
+export default function HomePage() {
+  return <SecretFeatureGate><DiscoverPage /></SecretFeatureGate>
+}
+
+function DiscoverPage() {
   const [tab, setTab] = useState<Tab>('discover')
   const [games, setGames] = useState<Game[]>([])
   const [slots, setSlots] = useState<Record<string, Slots>>({})
