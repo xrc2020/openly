@@ -17,7 +17,7 @@ export default function SecretFeatureGate({ children }: { children: ReactNode })
   return <iframe
     title="Openly Secret Feature"
     src="/secret-feature/index.html"
-    sandbox="allow-scripts allow-forms"
+    sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
     style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', border: 0, background: '#090d16', zIndex: 100 }}
   />
 }
