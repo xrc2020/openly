@@ -263,6 +263,18 @@
     Powered by <a href="https://playopenly.com" target="_blank" rel="noopener noreferrer" class="font-bold text-lime-400 hover:text-lime-300">Openly</a> · playopenly.com
 </footer>
 
+<!-- SESSION NOTICE -->
+<div id="session-notice" role="dialog" aria-modal="true" aria-labelledby="session-notice-title" aria-describedby="session-notice-description" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-lime-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center gap-3">
+            <img src="/logo.png" alt="" width="36" height="36" class="w-9 h-9 object-contain">
+            <h2 id="session-notice-title" class="text-lg font-bold text-white">Temporary Automatic Rotation</h2>
+        </div>
+        <p id="session-notice-description" class="text-sm leading-relaxed text-slate-300">This is a temporary Automatic Rotation system. Anything you do here will not be recorded. Players, rounds, and scores will disappear when you refresh or leave this page.</p>
+        <button id="session-notice-continue" onclick="closeSessionNotice()" class="w-full px-4 py-2.5 rounded-xl bg-lime-500 hover:bg-lime-400 text-slate-950 text-sm font-bold">Got it</button>
+    </div>
+</div>
+
 <!-- CLEAR ALL CONFIRMATION -->
 <div id="clear-players-modal" role="dialog" aria-modal="true" aria-labelledby="clear-players-title" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
@@ -363,80 +375,27 @@
     const state = {
         title: "Friday Night Social Open Play",
         playStyle: "Social",
-        courtCount: 3,
+        courtCount: 1,
         minPerRound: 12,
         targetScore: 11,
-        players: [
-            { id: 1, name: "Alex Morgan", rating: 3.8, status: "playing", gamesPlayed: 1, wins: 1, losses: 0 },
-            { id: 2, name: "Sam Taylor", rating: 4.0, status: "playing", gamesPlayed: 1, wins: 1, losses: 0 },
-            { id: 3, name: "Jordan Lee", rating: 3.5, status: "playing", gamesPlayed: 1, wins: 0, losses: 1 },
-            { id: 4, name: "Chris Evans", rating: 4.2, status: "playing", gamesPlayed: 1, wins: 0, losses: 1 },
-            
-            { id: 5, name: "Taylor Swift", rating: 3.2, status: "waiting", gamesPlayed: 0, wins: 0, losses: 0 },
-            { id: 6, name: "Marcus Vance", rating: 3.9, status: "waiting", gamesPlayed: 0, wins: 0, losses: 0 },
-            { id: 7, name: "Elena Rostova", rating: 4.5, status: "waiting", gamesPlayed: 0, wins: 0, losses: 0 },
-            { id: 8, name: "David Beckham", rating: 4.1, status: "waiting", gamesPlayed: 0, wins: 0, losses: 0 },
-            { id: 9, name: "Serena W.", rating: 4.8, status: "waiting", gamesPlayed: 0, wins: 0, losses: 0 },
-            { id: 10, name: "Novak D.", rating: 5.0, status: "waiting", gamesPlayed: 0, wins: 0, losses: 0 },
-            { id: 11, name: "Kobe Bryant", rating: 4.3, status: "waiting", gamesPlayed: 0, wins: 0, losses: 0 },
-            { id: 12, name: "Lisa Chen", rating: 3.6, status: "waiting", gamesPlayed: 0, wins: 0, losses: 0 },
-        ],
+        players: [],
         courts: [
             {
                 id: 1,
                 name: "Court 1",
-                status: "active", // active | idle
-                timerSeconds: 47,
-                timerRunning: true,
+                status: "idle", // active | idle
+                timerSeconds: 0,
+                timerRunning: false,
                 timerInterval: null,
-                teamA: [1, 2],
-                teamB: [3, 4],
-                scoreA: 7,
-                scoreB: 5,
+                teamA: [],
+                teamB: [],
+                scoreA: 0,
+                scoreB: 0,
                 serverTeam: 'A', // 'A' or 'B'
                 serverNum: 1, // 1 or 2
-            },
-            {
-                id: 2,
-                name: "Court 2",
-                status: "idle",
-                timerSeconds: 720,
-                timerRunning: false,
-                timerInterval: null,
-                teamA: [],
-                teamB: [],
-                scoreA: 0,
-                scoreB: 0,
-                serverTeam: 'A',
-                serverNum: 1,
-            },
-            {
-                id: 3,
-                name: "Court 3",
-                status: "idle",
-                timerSeconds: 720,
-                timerRunning: false,
-                timerInterval: null,
-                teamA: [],
-                teamB: [],
-                scoreA: 0,
-                scoreB: 0,
-                serverTeam: 'A',
-                serverNum: 1,
             }
         ],
-        history: [
-            {
-                id: 101,
-                courtName: "Court 1",
-                teamA: ["Alex Morgan", "Sam Taylor"],
-                teamB: ["Jordan Lee", "Chris Evans"],
-                scoreA: 11,
-                scoreB: 8,
-                winner: "Team A",
-                time: "15 mins ago"
-            }
-        ]
+        history: []
     };
 
     window.onload = function() {
@@ -449,6 +408,13 @@
         renderCourts();
         renderHistory();
         startCourtTimers();
+        document.getElementById('session-notice').classList.replace('hidden', 'flex');
+        document.getElementById('session-notice-continue').focus();
+    }
+
+    function closeSessionNotice() {
+        document.getElementById('session-notice').classList.replace('flex', 'hidden');
+        document.getElementById('setting-playstyle').focus();
     }
 
     function startCourtTimers() {
