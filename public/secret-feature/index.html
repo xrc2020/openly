@@ -62,6 +62,61 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #84cc16;
         }
+        main { width: 100%; min-width: 0; }
+        header > div, header > div > div:first-child, header > div > div:first-child > div:first-child { min-width: 0; }
+        #event-title-display { overflow-wrap: anywhere; }
+        #courts-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+        #courts-grid > div { min-width: 0; }
+        .court-heading { flex-wrap: wrap; gap: 8px; }
+        .court-scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .court-scoreboard > div { justify-content: center; min-width: 0; }
+        .court-scoreboard > button { grid-column: 1 / -1; grid-row: 2; }
+        .court-diagram { min-height: 180px; height: auto; }
+        .court-diagram > .flex-1 { min-width: 0; }
+        .court-player { display: grid; grid-template-columns: minmax(0, 1fr) 30px; column-gap: 4px; row-gap: 0; width: 116px; max-width: 100%; padding: 4px 5px; text-align: left; }
+        .text-right .court-player { margin-left: auto; }
+        .court-player > div:first-child { display: none; }
+        .court-player-name { grid-column: 1; grid-row: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; line-height: 15px; }
+        .court-player-details { grid-column: 1; grid-row: 2; display: flex; align-items: center; gap: 4px; line-height: 12px; }
+        .court-player .court-player-swap { grid-column: 2; grid-row: 1 / 3; width: 30px; height: 30px; min-height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid #475569; border-radius: 6px; color: #a3e635; background: #1e293b; }
+        .court-player-swap:hover { background: #334155; }
+        .bench-heading, .courts-heading { flex-wrap: wrap; gap: 12px; }
+        .bench-heading > div { min-width: 0; flex-wrap: wrap; }
+        [id$="-modal"], #session-notice { max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; }
+        [id$="-modal"] > div, #session-notice > div { max-height: calc(100dvh - 32px); overflow-y: auto; min-width: 0; }
+        #history-list-container { min-height: 0; overflow-wrap: anywhere; }
+        #history-list-container > div { flex-wrap: wrap; }
+        #history-list-container > div > div { min-width: 0; }
+        #toast-container { max-width: calc(100vw - 32px); right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); }
+        #toast-container > div { overflow-wrap: anywhere; }
+        #swap-options { display: grid; gap: 8px; }
+        #swap-options button { text-align: left; min-height: 48px; padding: 10px 12px; border: 1px solid #334155; border-radius: 10px; background: #020617; overflow-wrap: anywhere; }
+        #swap-options button:hover { border-color: #a3e635; }
+        button, input, select { touch-action: manipulation; }
+        button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #a3e635; outline-offset: 3px; }
+        body:has([id$="-modal"].flex), body:has(#session-notice.flex) { overflow: hidden; }
+        @media (max-width: 767px) {
+            header { position: relative !important; }
+            header > div > div:last-child { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; overflow: visible; }
+            header > div > div:last-child > div { min-width: 0; padding: 8px; gap: 6px; }
+            header > div > div:last-child > div > div:first-child { display: none; }
+            header > div > div:first-child > div:first-child { flex: 1; }
+            header h1 { font-size: 16px !important; }
+            header p { font-size: 9px !important; }
+            #setting-playstyle, #setting-minutes, #setting-score { width: 100%; min-width: 0; }
+            .session-fields > div:first-child, .session-fields > div:last-child { grid-column: 1 / -1; }
+            input, select { font-size: 16px !important; }
+            button { min-height: 40px; }
+            [id$="-modal"] > div, #session-notice > div { padding: 16px; }
+            .bench-heading > div:last-child { width: 100%; }
+            .bench-heading > div:last-child > button { flex: 1; justify-content: center; }
+        }
+        @media (max-width: 380px) {
+            main, header { padding-left: 12px !important; padding-right: 12px !important; }
+            #courts-grid > div { padding: 12px; }
+            .court-scoreboard { padding: 8px; gap: 6px; }
+            .court-scoreboard > div { gap: 4px; }
+        }
     </style>
 </head>
 <body class="min-h-screen pb-12 flex flex-col">
@@ -154,7 +209,7 @@
             </div>
 
             <!-- Interactive Settings Controls -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 max-w-4xl">
+            <div class="session-fields grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 max-w-4xl">
                 
                 <!-- Play Style Selector -->
                 <div class="flex flex-col gap-1.5">
@@ -212,7 +267,7 @@
 
     <!-- WAITING QUEUE BENCH SECTION -->
     <section class="bg-slate-900/80 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 md:p-5 shadow-glass space-y-4">
-        <div class="flex items-center justify-between">
+        <div class="bench-heading flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -241,7 +296,7 @@
 
     <!-- COURTS GRID SECTION -->
     <section class="space-y-4">
-        <div class="flex items-center justify-between">
+        <div class="courts-heading flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <div class="w-2.5 h-2.5 rounded-full bg-lime-400 shadow-neon"></div>
                 <h2 class="text-base font-bold text-white tracking-wide uppercase">Active Courts Grid</h2>
@@ -364,6 +419,17 @@
         <div class="border-t border-slate-800 pt-3 flex justify-end">
             <button onclick="toggleMatchHistory()" class="px-5 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-300 hover:text-white">Close</button>
         </div>
+    </div>
+</div>
+
+<!-- SWAP PLAYER PICKER -->
+<div id="swap-player-modal" role="dialog" aria-modal="true" aria-labelledby="swap-player-title" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <h3 id="swap-player-title" class="text-lg font-bold text-white">Swap player</h3>
+        <p id="swap-player-description" class="text-sm text-slate-300"></p>
+        <p class="text-xs text-slate-400">Scores and timer stay the same. Results go to the players on court when the round ends.</p>
+        <div id="swap-options"></div>
+        <button id="swap-cancel" onclick="closeSwapPlayer()" class="w-full px-4 py-2 rounded-xl bg-slate-800 text-sm font-bold">Cancel</button>
     </div>
 </div>
 
@@ -505,7 +571,7 @@
                 <div class="bg-slate-900/90 backdrop-blur-md border ${isActive ? 'border-lime-500/40 shadow-neon' : 'border-slate-800'} rounded-2xl p-4 flex flex-col justify-between space-y-4 transition-all">
                     
                     <!-- Court Header -->
-                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                    <div class="court-heading flex items-center justify-between border-b border-slate-800/80 pb-3">
                         <div class="flex items-center gap-2">
                             <span class="text-base font-extrabold text-white uppercase tracking-wider">${court.name}</span>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isActive ? 'bg-lime-500/20 text-lime-400 border border-lime-500/30' : 'bg-slate-800 text-slate-400'}">
@@ -536,7 +602,7 @@
 
                     <!-- Interactive Scoreboard -->
                     ${isActive ? `
-                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-2">
+                        <div class="court-scoreboard bg-slate-950 border border-slate-800 rounded-xl p-3">
                             <!-- Team A Score -->
                             <div class="flex items-center gap-2">
                                 <button onclick="adjustScore(${court.id}, 'A', -1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
@@ -571,7 +637,7 @@
                     ` : ''}
 
                     <!-- 2D PICKLEBALL COURT VISUAL DIAGRAM -->
-                    <div class="relative w-full h-44 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex shadow-inner">
+                    <div class="court-diagram relative w-full bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex shadow-inner">
                         
                         <!-- Court Line Styling -->
                         <!-- TEAM A SIDE (LEFT) -->
@@ -586,10 +652,10 @@
                             <!-- Player Cards Team A -->
                             <div class="relative z-10 space-y-1">
                                 <span class="text-[9px] font-extrabold text-lime-400 uppercase tracking-wider block">TEAM A</span>
-                                ${p1 ? renderCourtPlayerToken(p1, court.serverTeam === 'A' && court.serverNum === 1) : '<div class="text-[10px] text-slate-600 italic">Empty Slot</div>'}
+                                ${p1 ? renderCourtPlayerToken(p1, court.serverTeam === 'A' && court.serverNum === 1, court.id, 'A', 0) : '<div class="text-[10px] text-slate-600 italic">Empty Slot</div>'}
                             </div>
                             <div class="relative z-10">
-                                ${p2 ? renderCourtPlayerToken(p2, court.serverTeam === 'A' && court.serverNum === 2) : '<div class="text-[10px] text-slate-600 italic">Empty Slot</div>'}
+                                ${p2 ? renderCourtPlayerToken(p2, court.serverTeam === 'A' && court.serverNum === 2, court.id, 'A', 1) : '<div class="text-[10px] text-slate-600 italic">Empty Slot</div>'}
                             </div>
                         </div>
 
@@ -610,10 +676,10 @@
                             <!-- Player Cards Team B -->
                             <div class="relative z-10 space-y-1">
                                 <span class="text-[9px] font-extrabold text-cyan-400 uppercase tracking-wider block">TEAM B</span>
-                                ${p3 ? renderCourtPlayerToken(p3, court.serverTeam === 'B' && court.serverNum === 1) : '<div class="text-[10px] text-slate-600 italic">Empty Slot</div>'}
+                                ${p3 ? renderCourtPlayerToken(p3, court.serverTeam === 'B' && court.serverNum === 1, court.id, 'B', 0) : '<div class="text-[10px] text-slate-600 italic">Empty Slot</div>'}
                             </div>
                             <div class="relative z-10">
-                                ${p4 ? renderCourtPlayerToken(p4, court.serverTeam === 'B' && court.serverNum === 2) : '<div class="text-[10px] text-slate-600 italic">Empty Slot</div>'}
+                                ${p4 ? renderCourtPlayerToken(p4, court.serverTeam === 'B' && court.serverNum === 2, court.id, 'B', 1) : '<div class="text-[10px] text-slate-600 italic">Empty Slot</div>'}
                             </div>
                         </div>
 
@@ -632,23 +698,100 @@
         }).join('');
     }
 
-    function renderCourtPlayerToken(player, isServing) {
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
+    }
+
+    function renderCourtPlayerToken(player, isServing, courtId, team, slot) {
         const initials = player.name.split(' ').map(n => n[0]).join('').substring(0, 2);
         return `
-            <div class="inline-flex items-center gap-1.5 bg-slate-900/90 border ${isServing ? 'border-lime-400 shadow-neon' : 'border-slate-700'} px-2 py-1 rounded-lg max-w-full">
+            <div class="court-player bg-slate-900/90 border ${isServing ? 'border-lime-400 shadow-neon' : 'border-slate-700'} px-2 py-1 rounded-lg max-w-full">
                 <div class="w-5 h-5 rounded-full bg-slate-800 text-[9px] font-black text-lime-400 flex items-center justify-center border border-slate-700 flex-shrink-0">
-                    ${initials}
+                    ${escapeHtml(initials)}
                 </div>
-                <div class="truncate text-[10px] font-bold text-white max-w-[70px]">${player.name}</div>
-                <span class="text-[9px] text-lime-400 font-extrabold bg-lime-500/10 px-1 rounded">${player.rating}</span>
-                ${isServing ? '<span class="w-1.5 h-1.5 rounded-full bg-lime-400 animate-ping"></span>' : ''}
+                <div class="court-player-name font-bold text-white" title="${escapeHtml(player.name)}">${escapeHtml(player.name)}</div>
+                <div class="court-player-details"><span class="text-[9px] text-lime-400 font-extrabold">${escapeHtml(player.rating)}</span>
+                ${isServing ? '<span class="w-1.5 h-1.5 rounded-full bg-lime-400" role="img" aria-label="Serving" title="Serving"></span>' : ''}</div>
+                <button type="button" class="court-player-swap" title="Swap ${escapeHtml(player.name)}" aria-label="Swap ${escapeHtml(player.name)}" onclick="openSwapPlayer(${courtId}, '${team}', ${slot})"><svg aria-hidden="true" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16m-4-4 4 4-4 4M20 16H4m4-4-4 4 4 4"/></svg></button>
             </div>
         `;
     }
 
+    let swapSelection = null;
+    let swapTrigger = null;
+
+    function openSwapPlayer(courtId, team, slot) {
+        const court = state.courts.find(c => c.id === courtId);
+        if (!court || court.status !== 'active' || !['A', 'B'].includes(team)) return;
+        const playerId = court['team' + team][slot];
+        const player = state.players.find(p => p.id === playerId);
+        if (!player) return;
+        swapTrigger = document.activeElement;
+        swapSelection = {courtId, team, slot, playerId};
+        document.getElementById('swap-player-description').textContent = `Choose who swaps with ${player.name} on ${court.name}, Team ${team}.`;
+        const options = document.getElementById('swap-options');
+        options.replaceChildren();
+        const busyElsewhere = new Set(state.courts.filter(c => c.id !== courtId && c.status === 'active').flatMap(c => [...c.teamA, ...c.teamB]));
+        const currentPlayers = [...court.teamA, ...court.teamB];
+        state.players.filter(p => p.id !== playerId && !busyElsewhere.has(p.id) && (p.status === 'waiting' || currentPlayers.includes(p.id))).forEach(p => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = `${p.name} · ${currentPlayers.includes(p.id) ? 'Team ' + (court.teamA.includes(p.id) ? 'A' : 'B') + ' (this court)' : 'Resting'}`;
+            button.addEventListener('click', () => swapCourtPlayer(p.id));
+            options.appendChild(button);
+        });
+        if (!options.children.length) options.textContent = 'No players available to swap.';
+        document.getElementById('swap-player-modal').classList.replace('hidden', 'flex');
+        (options.querySelector('button') || document.getElementById('swap-cancel')).focus();
+    }
+
+    function closeSwapPlayer() {
+        document.getElementById('swap-player-modal').classList.replace('flex', 'hidden');
+        swapSelection = null;
+        if (swapTrigger && swapTrigger.isConnected) swapTrigger.focus();
+    }
+
+    function swapCourtPlayer(replacementId) {
+        if (!swapSelection) return;
+        const {courtId, team, slot, playerId} = swapSelection;
+        const court = state.courts.find(c => c.id === courtId);
+        const outgoing = state.players.find(p => p.id === playerId);
+        const incoming = state.players.find(p => p.id === replacementId);
+        if (!court || court.status !== 'active' || court['team' + team][slot] !== playerId || !outgoing || !incoming || playerId === replacementId) return;
+        if (state.courts.some(c => c.id !== courtId && c.status === 'active' && [...c.teamA, ...c.teamB].includes(replacementId))) return;
+        const otherTeam = ['A', 'B'].find(t => court['team' + t].includes(replacementId));
+        if (otherTeam) {
+            const otherSlot = court['team' + otherTeam].indexOf(replacementId);
+            court['team' + otherTeam][otherSlot] = playerId;
+        } else {
+            if (incoming.status !== 'waiting') return;
+            outgoing.status = 'waiting';
+            incoming.status = 'playing';
+        }
+        court['team' + team][slot] = replacementId;
+        closeSwapPlayer();
+        renderHeaderStats();
+        renderWaitingQueue();
+        renderCourts();
+        document.querySelector(`[onclick="openSwapPlayer(${courtId}, '${team}', ${slot})"]`)?.focus();
+        showToast(`${outgoing.name} swapped with ${incoming.name}.`, 'success');
+    }
+
+    document.addEventListener('keydown', event => {
+        const modal = document.getElementById('swap-player-modal');
+        if (modal.classList.contains('hidden')) return;
+        if (event.key === 'Escape') closeSwapPlayer();
+        if (event.key === 'Tab') {
+            const buttons = [...modal.querySelectorAll('button')];
+            const first = buttons[0], last = buttons[buttons.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+    });
+
     function generateRound(courtId) {
         const court = state.courts.find(c => c.id === courtId);
-        if (!court) return;
+        if (!court || court.status === 'active') return;
 
         // Get available waiting players
         const waitingPlayers = state.players.filter(p => p.status === 'waiting');
@@ -996,7 +1139,7 @@
         toast.className = `px-4 py-3 rounded-xl border ${bgClass} shadow-2xl text-xs font-bold flex items-center gap-2.5 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto backdrop-blur-md`;
         toast.innerHTML = `
             <span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-lime-400 animate-pulse' : 'bg-amber-400'}"></span>
-            <span>${message}</span>
+            <span>${escapeHtml(message)}</span>
         `;
 
         container.appendChild(toast);
