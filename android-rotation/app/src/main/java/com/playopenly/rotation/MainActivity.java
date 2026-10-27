@@ -59,7 +59,7 @@ public final class MainActivity extends Activity {
     }
 
     @Override public void onBackPressed() {
-        webView.evaluateJavascript("(() => { const ids = ['swap-player-modal','history-modal','edit-title-modal','add-player-modal','clear-players-modal']; for (const id of ids) { const m = document.getElementById(id); if(m && !m.classList.contains('hidden')) { m.classList.replace('flex','hidden'); return true; } } return false; })()", handled -> {
+        webView.evaluateJavascript("(() => { const ids = ['rankings-modal','swap-player-modal','history-modal','edit-title-modal','add-player-modal','clear-players-modal']; for (const id of ids) { const m = document.getElementById(id); if(m && !m.classList.contains('hidden')) { m.classList.replace('flex','hidden'); return true; } } return false; })()", handled -> {
             if (!"true".equals(handled)) new AlertDialog.Builder(this)
                 .setTitle("Leave Openly Rotation?")
                 .setMessage("This session is temporary. Closing the app clears its players, scores and history.")

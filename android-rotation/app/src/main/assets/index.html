@@ -411,6 +411,22 @@ img, video { max-width: 100%; height: auto; }
             .court-scoreboard > div { gap: 4px; }
         }
     </style>
+<style>
+    .rankings-toolbar { display:flex; justify-content:flex-end; padding:12px 16px 0; max-width:1280px; width:100%; margin:auto; }
+    .rankings-button { background:#1e293b; color:#a3e635; border:1px solid #475569; border-radius:10px; padding:10px 16px; min-height:44px; font-weight:700; }
+    #rankings-modal { background:rgba(2,6,23,.92); }
+    .rankings-panel { background:#0f172a; border:1px solid #334155; border-radius:16px; padding:16px; width:100%; max-width:680px; display:flex; flex-direction:column; gap:14px; }
+    .rankings-header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .rankings-header h2 { font-size:20px; font-weight:800; }
+    .rankings-note { color:#94a3b8; font-size:12px; line-height:1.6; }
+    .rankings-scroll { overflow:auto; min-height:0; }
+    .rankings-table { width:100%; min-width:420px; border-collapse:collapse; font-size:12px; }
+    .rankings-table th,.rankings-table td { padding:10px 5px; border-bottom:1px solid #334155; text-align:center; }
+    .rankings-table th { color:#94a3b8; font-size:10px; }
+    .rankings-table td:nth-child(2),.rankings-table th:nth-child(2) { text-align:left; overflow-wrap:anywhere; min-width:110px; max-width:180px; }
+    .rankings-win { color:#a3e635; font-weight:800; }
+    .rankings-loss { color:#fda4af; }
+</style>
 </head>
 <body class="min-h-screen pb-12 flex flex-col">
 
@@ -488,6 +504,8 @@ img, video { max-width: 100%; height: auto; }
 
     </div>
 </header>
+
+<div class="rankings-toolbar"><button type="button" class="rankings-button" onclick="openRankings()">🏆 Rankings</button></div>
 
 <!-- Main App Container -->
 <main class="max-w-7xl mx-auto px-4 lg:px-8 mt-6 space-y-6 flex-1">
@@ -712,6 +730,14 @@ img, video { max-width: 100%; height: auto; }
         <div class="border-t border-slate-800 pt-3 flex justify-end">
             <button onclick="toggleMatchHistory()" class="px-5 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-300 hover:text-white">Close</button>
         </div>
+    </div>
+</div>
+
+<div id="rankings-modal" role="dialog" aria-modal="true" aria-labelledby="rankings-title" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="rankings-panel">
+        <div class="rankings-header"><h2 id="rankings-title">Session Rankings</h2><button id="rankings-close" type="button" class="rankings-button" onclick="closeRankings()">Close</button></div>
+        <p class="rankings-note">Completed matches this session only. Most wins first, then win rate. Equal records share a rank. Active rounds are not counted. Rankings clear when this session ends.</p>
+        <div id="rankings-content" class="rankings-scroll"></div>
     </div>
 </div>
 
@@ -1142,6 +1168,10 @@ img, video { max-width: 100%; height: auto; }
     function endRound(courtId) {
         const court = state.courts.find(c => c.id === courtId);
         if (!court || court.status !== 'active') return;
+        if (court.scoreA === court.scoreB) {
+            showToast('Scores are tied. Enter a winning score before ending the round.', 'warning');
+            return;
+        }
 
         const p1 = state.players.find(p => p.id === court.teamA[0]);
         const p2 = state.players.find(p => p.id === court.teamA[1]);
@@ -1159,6 +1189,7 @@ img, video { max-width: 100%; height: auto; }
             scoreA: court.scoreA,
             scoreB: court.scoreB,
             winner: winnerTeam,
+            participants: [p1, p2, p3, p4].filter(Boolean).map(p => ({id: p.id, name: p.name, team: court.teamA.includes(p.id) ? 'Team A' : 'Team B'})),
             time: 'Just now'
         };
         state.history.unshift(historyItem);
@@ -1392,7 +1423,54 @@ img, video { max-width: 100%; height: auto; }
         }
     }
 
+    let rankingsTrigger = null;
+
+    function getSessionRankings() {
+        const records = new Map(state.players.map(p => [p.id, {id:p.id, name:p.name, games:0, wins:0, losses:0}]));
+        state.history.forEach(match => {
+            (match.participants || []).forEach(player => {
+                if (!records.has(player.id)) records.set(player.id, {id:player.id, name:player.name, games:0, wins:0, losses:0});
+                const record = records.get(player.id);
+                record.games++;
+                if (match.winner === player.team) record.wins++; else record.losses++;
+            });
+        });
+        const rows = [...records.values()].map(p => ({...p, winRate:p.games ? p.wins/p.games : 0}));
+        rows.sort((a,b) => b.wins-a.wins || b.winRate-a.winRate || a.name.localeCompare(b.name) || a.id-b.id);
+        let rank = 0;
+        return rows.map((row,index) => {
+            if (index === 0 || row.wins !== rows[index-1].wins || row.winRate !== rows[index-1].winRate) rank = index+1;
+            return {...row, rank:row.games ? rank : null};
+        });
+    }
+
+    function openRankings() {
+        rankingsTrigger = document.activeElement;
+        renderRankings();
+        document.getElementById('rankings-modal').classList.replace('hidden','flex');
+        document.getElementById('rankings-close').focus();
+    }
+
+    function closeRankings() {
+        document.getElementById('rankings-modal').classList.replace('flex','hidden');
+        if (rankingsTrigger?.isConnected) rankingsTrigger.focus();
+    }
+
+    function renderRankings() {
+        const rows = getSessionRankings();
+        document.getElementById('rankings-content').innerHTML = !rows.length
+            ? '<p class="rankings-note">Add players and complete a round to see rankings.</p>'
+            : `<table class="rankings-table"><thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Played</th><th scope="col">Wins</th><th scope="col">Losses</th><th scope="col">Win %</th></tr></thead><tbody>${rows.map(p => `<tr><td>${p.rank ?? '—'}</td><td>${escapeHtml(p.name)}</td><td>${p.games}</td><td class="rankings-win">${p.wins}</td><td class="rankings-loss">${p.losses}</td><td>${p.games ? Math.round(p.winRate*100)+'%' : '—'}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    document.addEventListener('keydown', event => {
+        if (document.getElementById('rankings-modal').classList.contains('hidden')) return;
+        if (event.key === 'Escape') closeRankings();
+        if (event.key === 'Tab') {event.preventDefault(); document.getElementById('rankings-close').focus();}
+    });
+
     function renderHistory() {
+        renderRankings();
         const container = document.getElementById('history-list-container');
         if (state.history.length === 0) {
             container.innerHTML = `<div class="text-center text-slate-500 py-6 text-xs">No completed matches recorded yet.</div>`;
